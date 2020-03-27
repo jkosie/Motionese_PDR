@@ -1,0 +1,88 @@
+---
+title: "00_number_trials"
+author: "Jessica Kosie"
+date: '`r format(Sys.time(), "%a %b %d %X %Y")`'
+output: 
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse); library(lme4); library(lmerTest); library(here); library(effsize); library(ltm)
+
+```
+### read in data file and add frame number to count from the beginning of each trial
+```{r}
+raw_pdr <- read_csv(here('pdr_data', 'pdr_data_cleaned.csv'))
+
+#create a new data frame
+df <- data.frame(subid = as.character(), raw_pdr = as.numeric(), pi_frame_number = as.numeric(), event = as.character(), block = as.character(), vid = as.character())
+
+vid.data <- data.frame(subid = as.character(), vid = as.character(), block = as.character(), num_frames = as.numeric(), frames_looking = as.numeric(), vid_length = as.numeric(), vid_looking = as.numeric())
+    
+#this loop separtes by subs, blocks, and trials and then numbers the trials starting at frame 1 when the grey screen is up and numbers through the end of the video
+subs <- unique(raw_pdr$subid)  
+for (s in 1:length(subs)){
+  bysub <- filter(raw_pdr, subid == subs[s])
+  #get rid of baby and chimes
+  bysub <- filter(bysub, event != "trial_offset" & event != "flash")
+  blocks <- unique(bysub$block)
+    for (b in 1:length(blocks)){
+      byblock <- dplyr::filter(bysub, block == blocks[b])
+      vids <- unique(byblock$vid)
+        for (v in 1:length(vids)){
+          byvid <- filter(byblock, vid == vids[v])
+          byvid$frame_num <- 1:nrow(byvid)
+#get a separate data frame with info about how many frames in each video and how many the baby was looking for and how many frames baby was looking in video only
+          looking <- nrow(byvid) - sum(is.na(byvid$raw_pdr))
+          vid_only <- filter(byvid, event == "event_onset" | event == "boundary")
+          vid_looking <- nrow(vid_only) - sum(is.na(vid_only$raw_pdr))
+          temp <- data.frame(subid = subs[s], vid = vids[v], block = blocks[b], num_frames = nrow(byvid), frames_looking = looking, vid_length = nrow(vid_only), vid_looking = vid_looking)
+          vid.data <- rbind(vid.data, temp)
+          df <- rbind(df, byvid)
+        }
+    }
+}
+
+#join the data frame created above with the raw_pdr data frame
+raw_pdr <- left_join(raw_pdr, df)
+
+write_csv(raw_pdr, 'pdr_data/pdr_cleaned_trials_numbered.csv')
+
+write_csv(vid.data, 'metadata/looking_and_frames_by_video.csv')
+
+
+```
+# Checking that there aren't any files with videos that are longer or shorter than the actual lenght of the video (as indicated by Matlab) 
+
+```{r}
+
+vid.data %>% 
+  filter(subid != "ki009") %>% #something off with this subject, but we're removing them anyway
+  group_by(vid) %>% 
+  ggplot(aes(x = num_frames)) +
+  geom_histogram(bins = 100) +
+  facet_wrap(~vid)
+
+frames <- read_csv(here('metadata','vid_lengths_per_matlab.csv'))
+
+frames <- frames[,c('vid', 'vid_num_frames')]
+
+vid.data <- left_join(vid.data, frames)
+
+vid.data <- vid.data %>% 
+  mutate(diff = num_frames - vid_num_frames)
+
+different.lengths <- vid.data %>% 
+  filter(diff != 0)
+
+(nrow(vid.data) - nrow(different.lengths)) / nrow(vid.data)
+
+table(different.lengths$subid)
+
+
+```

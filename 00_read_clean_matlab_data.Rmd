@@ -1,0 +1,98 @@
+---
+title: "read and clean data from matlab"
+author: "Jessica Kosie"
+date: "March 27, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(here); library(tidyverse)
+```
+# read in a data file and combine with events files
+```{r}
+
+#tell R where the data files are
+pdr_files <- here("pdr_data", "raw_data")
+ev_files <- here("events_files")
+
+#list all of the files
+participant_files <- list.files(pdr_files, full.names = T)
+event_files <- list.files(ev_files, full.names = T)
+
+#read in frameshift file
+frameshift <- read_csv("metadata/frameshift.csv")
+
+#blank data frame
+raw_pdr_data <- data.frame(raw_pdr = as.numeric(), pi_frame_number = as.numeric(), event = as.character(), block = as.character(), video = as.character(), subid = as.character())
+
+for (i in 1:length(participant_files)) {
+    #read in each file
+    df <- read_csv(participant_files[i], col_names = FALSE, na = c("NA", "NaN"))
+    print(participant_files[i])
+    #get the subject id
+    subid <- str_replace(basename(participant_files[i]), "_raw.csv", "")
+    #add a frame number column that corresponds to the pi video
+    df <- df %>% 
+          mutate(pi_frame_number = 1:nrow(df))
+    #label the pdr column
+    colnames(df)[1] <- "raw_pdr"
+    #read in the correct events file
+    ev_file <- grep(subid, event_files, value = TRUE)
+    ev <- read_csv(ev_file)
+    evsub <- str_replace(basename(event_files[i]), "_events.csv", "")
+    print(event_files[i])
+    
+    ifelse(evsub == subid, print("SubIDs match"), print("ERROR: SUBIDS DO NOT MATCH!"))
+    
+    #change timing in event file from seconds to frames and adjust to match pi video
+    shift <- frameshift[which(frameshift$subid == subid), "frame_shift"]
+    ev <- ev %>% 
+      mutate(pi_frame_number = round(frames_from_start - as.numeric(shift[1]), 0))
+    
+    #add columns to df to fill in later
+    df$event <- rep(NA, nrow(df))
+    df$block <- rep(NA, nrow(df))
+    df$vid <- rep(NA, nrow(df))
+    df$trial_number <- rep(NA, nrow(df))
+    df$inBlock_trial_number <- rep(NA, nrow(df))
+    #get the estimated trigs to compare to matlab trigs
+    trigs <- ev %>% 
+      dplyr::filter(event == "trial_offset") %>% 
+      dplyr::select(vid, block, pi_frame_number) %>% 
+      mutate(est_flash = pi_frame_number + 12)
+    write_csv(trigs, paste('trigs/', subid, '_py_trigs.csv'))
+#temporarily remove boundary from events because we don't want to do the same thing with the boundary regions
+    ev_noB <- dplyr::filter(ev, event != "boundary")
+    reps <- nrow(ev_noB)-1
+      for (j in 1:reps){
+        df$event[ev_noB$pi_frame_number[j]:(ev_noB$pi_frame_number[j+1]-1)] <- ev_noB$event[j]
+        df$block[ev_noB$pi_frame_number[j]:(ev_noB$pi_frame_number[j+1]-1)] <- ev_noB$block[j]
+        df$vid[ev_noB$pi_frame_number[j]:(ev_noB$pi_frame_number[j+1]-1)] <- ev_noB$vid[j]
+        df$trial_number[ev_noB$pi_frame_number[j]:(ev_noB$pi_frame_number[j+1]-1)] <- ev_noB$trial_number[j]
+        df$inBlock_trial_number[ev_noB$pi_frame_number[j]:(ev_noB$pi_frame_number[j+1]-1)] <- ev_noB$inBlock_trial_number[j]
+      }
+
+  #add the boundaries
+  bounds <- dplyr::filter(ev, event == "boundary")
+  
+  #for 15 frames surrounding the boundary, make it a boundary
+  for (k in 1:nrow(bounds)){
+    df$event[(bounds$pi_frame_number[k]-7):(bounds$pi_frame_number[k]+7)] <- "boundary"
+  }
+
+#get rid of all NA blocks to get rid of any excess PDR measurements that are before/after the stimuli is playing
+  df <- df %>% 
+    dplyr::filter(!is.na(block))
+  
+  df$subid <- rep(subid, nrow(df))
+  
+  raw_pdr_data <- rbind(raw_pdr_data, df)
+}
+
+write_csv(raw_pdr_data, "pdr_data/pdr_data_cleaned.csv")
+
+```
+
+
+

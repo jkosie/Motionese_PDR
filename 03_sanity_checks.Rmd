@@ -1,0 +1,500 @@
+---
+title: "07_analyses_for_ch3_7.5.19"
+author: "Jessica Kosie"
+date: "7/5/2019"
+output:
+  word_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+library(tidyverse); library(lme4); library(lmerTest); library(here)
+
+source(here::here('helper', 'functions.R'))
+
+# make sure summary() uses Type III sums of squares
+afex::set_sum_contrasts()
+
+# remove scientific notation
+options(scipen = 999)
+
+```
+
+## Read in PDR data and remove fussy trials / blocks
+
+```{r read in data}
+pdr_all_trials <- read_csv(here::here('chapter_3', 'raw_pdr_trials_numbered_7.1.19.csv'))
+
+#remove fussy trials and blocks
+remove <- read_csv(here::here('chapter_3', 'to_remove_7.5.19_new.csv'))
+
+pdr_all_trials <- left_join(pdr_all_trials, remove)
+
+#get rid of all trials that I decided to remove
+pdr <- pdr_all_trials %>% 
+  filter(is.na(status))
+
+#get rid of the extra data frame and extra columns    
+rm(remove)
+pdr$status <- NULL
+pdr$remove_reason <- NULL
+
+#remove ki009 - they have a developmental delay
+pdr <- pdr %>% 
+  filter(subid != "ki009")
+
+#get rid of trial_offset
+pdr <- pdr %>% 
+  filter(event != "trial_offset")
+```
+#Prepare for analyses.
+```{r prep for analyses}
+#get a boundary column and change boundary in the event column to `event_onset`
+pdr <- pdr %>% 
+  mutate(boundary = case_when(event == "boundary" ~ "boundary",
+                              TRUE ~ "nonboundary"))
+
+pdr <- pdr %>% 
+  mutate(event = case_when(event == "boundary" ~ "event_onset",
+                           TRUE ~ event))
+
+#create a looking column (has a 1 when there is a raw_pdr value and 0 when raw_pdr is NA)
+pdr <- pdr %>% 
+  mutate(looking = case_when(!is.na(raw_pdr) ~ 1,
+                           TRUE ~ 0))
+
+#make actor and partner columns
+pdr <- pdr %>% 
+    separate(vid, into = c("actor","partner", "object"), sep = "_", remove = FALSE)
+```
+## Z-score PDR data. For each participant, get the mean and standard deviation across all of their blocks/trials and use those to caluclate pdr_z.
+```{r z-score}
+z_data <- pdr %>% 
+  group_by(subid) %>% 
+  dplyr::summarise(sub_mean = mean(raw_pdr, na.rm = TRUE),
+                   sub_sd = sd(raw_pdr, na.rm = TRUE))
+
+pdr <- pdr %>% 
+  left_join(z_data)
+
+pdr <- pdr %>% 
+  mutate(pdr_z = (raw_pdr - sub_mean)/sub_sd)
+
+rm(z_data)
+
+```
+#Filter z-scored data and get baseline values
+```{r filter and baseline}
+pdr <- pdr %>% 
+  mutate(pdr_z_filtered = hanning_filter(pdr_z, 11))
+
+#baseline correct
+#calculate baseline PDR (last 1s of still before video begins playing)
+baseline <- pdr %>% 
+  filter(frame_num >= 150 & frame_num <= 180) %>% 
+  group_by(subid, block, inBlock_trial_number) %>% 
+  dplyr::summarise(baseline_pdr = mean(pdr_z_filtered))
+
+pdr <- left_join(pdr, baseline)
+
+#look at the distribution
+hist(baseline$baseline_pdr)
+
+#remove extraneous data file
+rm(baseline)
+
+#get only region of activity where the event (video) is happening
+video_pdr <- filter(pdr, event == "event_onset")
+
+```
+#Sanity Check #1: Does looking decrease over blocks?
+```{r pdr over blocks}
+#get a sum of looking for each video by subject and block, only for the video portion
+video_looking <- pdr %>% 
+  dplyr::filter(event == "event_onset") %>% 
+  group_by(subid, block, vid) %>% 
+  dplyr::summarise(tot_looking = sum(looking),
+            num_frames = n())
+
+#create a proprtion column and split video column into partner and object
+video_looking <- video_looking %>% 
+  mutate(prop_looking = tot_looking/num_frames) %>% 
+  separate(vid, into = c("actor", "partner", "object"), sep = "_", remove = FALSE)
+
+#how much do infants look to trials on average?
+video_looking %>% 
+  ungroup() %>% 
+  dplyr::summarise(mean = mean(prop_looking),
+                   sd = sd(prop_looking))
+
+#turn block into a factor 
+video_looking$block <- as.factor(video_looking$block)
+
+contrasts(video_looking$block) <- contr.poly
+
+block_mod <- lmer(prop_looking ~ block + (1|subid) + (1|vid), data = video_looking)
+summary(block_mod)
+
+plot.data <- video_looking %>% 
+  group_by(block) %>% 
+  dplyr::summarise(mean = mean(prop_looking, na.rm=TRUE),
+            sd = sd(prop_looking, na.rm=TRUE),
+            n = n(),
+            se=sd/sqrt(n),
+            ci = qt(0.975,df=n-1)*se)
+
+ggplot(plot.data, aes(x=as.numeric(block), y=mean)) + 
+    geom_line(size = 1) +
+    geom_point(size = 2) +
+    geom_errorbar(aes(ymin = mean-se, ymax = mean+se), width = .2, position = position_dodge(0.05), size = 1.5)+
+    theme_linedraw() +
+    theme(text = element_text(size=16), axis.text.x = element_text(size=16), axis.text.y = element_text(size=12), legend.position = "none") +
+  labs(y = "Average Proportion of Looking to Each Trial", x = "Block Number") +
+  scale_x_discrete(limits=1:6)
+
+
+#what about just for babies who gave us at least some data from all six blocks?
+all6 <- c("ct012", "ve013","wp019","vj026", "la004","sj005","pp006", "cl007", "mo008", "cn011", "ae015", "ct016", "bj020", "mg023")
+
+block_mod_all6 <- lmer(prop_looking ~ block + (1|subid) + (1|vid), data = filter(video_looking, subid %in% all6))
+summary(block_mod_all6)
+
+plot.data <- video_looking %>% 
+  filter(subid %in% all6) %>% 
+  group_by(block) %>% 
+  dplyr::summarise(mean = mean(prop_looking))
+
+ggplot(plot.data, aes(x=as.numeric(block), y=mean)) + 
+    geom_line(size = 1) +
+    geom_point(size = 2) +
+    theme_linedraw() +
+    theme(text = element_text(size=16), axis.text.x = element_text(size=16), axis.text.y = element_text(size=12), legend.position = "none") +
+  labs(y = "Average Proportion of Looking to Each Trial", x = "Block Number") +
+  scale_x_discrete(limits=1:6)
+
+```
+#Sanity Check #2: Does infants' PDR respond to still frame and video start?
+```{r onset of still and video PDR response}
+#plot the data before segmenting to regions
+plot.data <- pdr %>% 
+  group_by(frame_num) %>% 
+  summarise(mean = mean(pdr_z_filtered, na.rm = TRUE),
+            sd = sd(pdr_z_filtered, na.rm=TRUE),
+            n = n(),
+            se=sd/sqrt(n),
+            ci = qt(0.975,df=n-1)*se)
+
+rects <- data.frame(xstart = c(0, 90, 180), xend = c(90, 180, 540), Region = c("Grey Screen", "Still Frame", "Video"))
+
+ggplot(data = plot.data) +
+  geom_rect(data = rects, aes(xmin = xstart, xmax = xend, ymin = -Inf, ymax = Inf, fill = Region), alpha = 0.2, inherit.aes = FALSE) +
+  geom_line(plot.data, mapping = aes(x = frame_num, y = mean), size = 1.5) +
+  geom_ribbon(plot.data, mapping = aes(x = frame_num, ymin=mean-se, ymax=mean+se), alpha=0.4) +
+  geom_vline(xintercept = c(90, 180), linetype = "dashed") +
+  theme_linedraw() +
+  theme(text = element_text(size=18), axis.text.x = element_text(size=18), axis.text.y = element_text(size=14), legend.position = "none") +
+  labs(y = "Average Z-Scored and Filtered Pupil Size", x = "Frame Number") +
+  scale_x_continuous(breaks = c(100, 200, 300, 400, 500, 600)) +
+  annotate("text", x = 45, y= -0.35, label = "GREY", size = 5) +
+  annotate("text", x = 135, y= -0.35, label = "STILL", size = 5) +
+  annotate("text", x = 350, y= -0.35, label = "VIDEO", size = 5) 
+
+
+#add a column to pdr data specifying pre- and post- still
+pdr_still <- pdr %>% 
+  mutate(still_region = case_when(frame_num >= 60 & frame_num <= 90 ~ "pre_still",
+                                  frame_num >= 91 & frame_num <= 121 ~ "post-still",
+                                  TRUE ~ NA_character_)) %>% 
+  filter(!is.na(still_region))
+
+#run model predicting z-scored, filterd PDR from still_region w/ random subs and videos
+still_mod <- lmer(pdr_z_filtered ~ still_region + (1|subid) + (1|vid), data = pdr_still)
+summary(still_mod)
+
+pdr_still %>% 
+  group_by(still_region) %>% 
+  dplyr::summarise(mean = mean(pdr_z_filtered),
+                   sd = sd(pdr_z_filtered))
+
+
+#add a column to pdr data specifying pre- and post- video
+pdr_vid <- pdr %>% 
+  mutate(vid_region = case_when(frame_num >= 150 & frame_num <= 180 ~ "pre_vid",
+                                  frame_num >= 181 & frame_num <= 211 ~ "post_vid",
+                                  TRUE ~ NA_character_)) %>% 
+  filter(!is.na(vid_region))
+
+#run model predicting z-scored, filterd PDR from still_region w/ random subs and videos
+vid_mod <- lmer(pdr_z_filtered ~ vid_region + (1|subid) + (1|vid), data = pdr_vid)
+summary(vid_mod)
+
+pdr_vid %>% 
+  group_by(vid_region) %>% 
+  dplyr::summarise(mean = mean(pdr_z_filtered),
+                   sd = sd(pdr_z_filtered))
+
+#run model predicting z-scored, filterd PDR from still_region and block w/ random subs and videos
+vid_mod <- lmer(pdr_z_filtered ~ vid_region * block + (1|subid) + (1|vid), data = pdr_vid)
+summary(vid_mod)
+
+plot.data <- pdr_vid %>% 
+  group_by(vid_region, block) %>% 
+  dplyr::summarise(mean = mean(pdr_z_filtered),
+                   sd = sd(pdr_z_filtered))
+
+ggplot(plot.data, aes(x = as.factor(block), y = mean, fill = vid_region)) +
+  geom_bar(stat = "identity", position = "dodge")
+
+```
+#Related to Sanity Check #2 (for supplementary materials): Does luminance predict PDR to they grey screen / still frame?
+```{r luminance and PDR to grey/still}
+lum <- read_csv('lum_for_grey_still.csv')
+
+#z-score luminance
+lum <- lum %>% 
+  unite("vid", c("actor", "partner", "object"))
+
+z <- lum %>% 
+  group_by(vid) %>% 
+  summarise(mean_lum = mean(lum_corrected),
+            sd_lum = sd(lum_corrected))
+
+lum <- left_join(lum, z)
+
+lum <- lum %>% 
+  mutate(lum_z = (lum_corrected-mean_lum)/sd_lum)
+
+pdr_lum <- pdr %>% 
+  filter(frame_num <= 180) %>% 
+  left_join(lum)
+
+plot.data <- pdr_lum %>% 
+  group_by(frame_num) %>% 
+  summarise(mean_lum = mean(lum_z),
+            mean_pdr = mean(pdr_z_filtered))
+
+plot.data %>% 
+  ggplot() +
+  geom_line(aes(x = frame_num, y = mean_lum)) +
+  geom_line(aes(x = frame_num, y = mean_pdr))
+  
+#run the analysis predicting pdr from luminance for only the grey/still
+model <- lmer(pdr_z_filtered ~ lum_z + (lum_z|subid) + (1|vid), data = pdr_lum)
+summary(model)
+
+
+```
+#Sanity Check #3: Does removing hand-coded look aways give the same result as without removing hand-coded look aways?
+```{r}
+#read in comparison files
+compare <- read_csv(here::here('chapter_3', 'hand_coding_comparison_6.28.19.csv'))
+
+#add hits, misses, false alarms, and correct rejections column
+compare <- compare %>% 
+  mutate(signal = case_when(ar_looking == 1 & pi_looking == 1 ~ "hit",
+                            ar_looking == 1 & pi_looking == 0 ~ "miss",
+                            ar_looking == 0 & pi_looking == 1 ~ "false_alarm",
+                            ar_looking == 0 & pi_looking == 0 ~ "correct_rej",
+                            TRUE ~ NA_character_))
+
+table(compare$subid, compare$signal)
+
+table(compare$signal)
+
+#correct rejection proportion
+table(compare$signal)[[1]] / nrow(compare)
+
+#false alarm proportion
+table(compare$signal)[[2]] / nrow(compare)
+
+#hit proportion
+table(compare$signal)[[3]] / nrow(compare)
+
+#miss proportion
+table(compare$signal)[[4]] / nrow(compare)
+
+#matches
+(table(compare$signal)[[1]] + table(compare$signal)[[3]]) / nrow(compare)
+```
+#Compare with and without false alarms.
+```{r}
+#get a pdr file with only these participants
+vid_pdr_compare <- video_pdr %>% 
+  filter(subid == "bj020" | subid == "ca001" | subid == "cn011" | subid == "ct016" | subid == "la004" | subid == "mo008" | subid == "sj005")
+
+#remove last 2 trials (block 6 trials 5 and 6) for ct016 (so files match)
+vid_pdr_compare <- vid_pdr_compare %>% 
+  mutate(remove = case_when(subid == "ct016" & block == 6 & inBlock_trial_number == 5 ~ "remove",
+                            subid == "ct016" & block == 6 & inBlock_trial_number == 6 ~ "remove",
+                            TRUE ~ "keep"))
+
+vid_pdr_compare <- vid_pdr_compare %>% 
+  filter(remove == "keep")
+
+vid_pdr_compare$remove <- NULL
+
+unique(vid_pdr_compare$subid)
+unique(compare$subid)
+
+#join comparison with PDR
+vid_pdr_compare <- left_join(vid_pdr_compare, compare)
+
+sum(vid_pdr_compare$looking)
+sum(vid_pdr_compare$pi_looking)
+
+#look at data with 1s boundary regions interaction
+
+#import boundary regions file
+bounds_1s <- read_csv(here::here('chapter_3', 'boundary_regions_1000ms_after_b.csv'))
+
+#join with PDR file to keep only boundary regions
+bounds_1s <- left_join(bounds_1s, vid_pdr_compare)
+
+#add object/partner
+bounds_1s <- bounds_1s %>% 
+  separate(vid, into = c("actor", "partner", "object"), sep = "_", remove = FALSE)
+
+bounds_1s$region_1s <- as.factor(bounds_1s$region_1s)
+contrasts(bounds_1s$region_1s) <- contr.poly
+
+model <- lmer(pdr_z_filtered ~ region_1s + (1|subid) + (1|vid), data = bounds_1s)
+summary(model)
+anova(model)
+
+model <- lmer(pdr_z_filtered ~ region_1s * partner + (1|subid) + (1|vid), data = bounds_1s)
+summary(model)
+anova(model)
+
+plot.data <- bounds_1s %>% 
+  group_by(reg_num, region_1s, partner) %>% 
+  dplyr::summarise(avg_pdr = mean(pdr_z_filtered, na.rm = TRUE))
+
+ggplot(plot.data) +
+  geom_line(aes(x = reg_num, y = avg_pdr, color = partner), size = 1) +
+  labs(title = "PDR to Boundaries for Adult- vs Infant-Directed Action", x = "Frames; Boundary at 0", y = "Average Z-Scored, Filtered, PDR") +
+  geom_vline(xintercept = 0, linetype = "dashed", size = 1) +
+  geom_vline(xintercept = c(-30, 29, 59), color = "red", size = 1)
+
+#get rid of false alarms and re-do z-scoring and filtering for remaining data
+full_compare <- read_csv(here('chapter_3', 'full_hand_coding_comparison_7.5.19.csv'))
+
+#get a pdr file with only these participants
+full_pdr_compare <- pdr %>% 
+  filter(subid == "bj020" | subid == "ca001" | subid == "cn011" | subid == "ct016" | subid == "la004" | subid == "mo008" | subid == "sj005")
+
+#remove last 2 trials (block 6 trials 5 and 6) for ct016 (so files match)
+full_pdr_compare <- full_pdr_compare %>% 
+  mutate(remove = case_when(subid == "ct016" & block == 6 & inBlock_trial_number == 5 ~ "remove",
+                            subid == "ct016" & block == 6 & inBlock_trial_number == 6 ~ "remove",
+                            TRUE ~ "keep"))
+
+full_pdr_compare <- full_pdr_compare %>% 
+  filter(remove == "keep")
+
+#join comparison with PDR
+full_pdr_compare <- left_join(full_pdr_compare, full_compare)
+
+sum(full_pdr_compare$looking)
+sum(full_pdr_compare$pi_looking)
+
+#add hits, misses, false alarms, and correct rejections column
+full_pdr_compare <- full_pdr_compare %>% 
+  mutate(signal = case_when(ar_looking == 1 & pi_looking == 1 ~ "hit",
+                            ar_looking == 1 & pi_looking == 0 ~ "miss",
+                            ar_looking == 0 & pi_looking == 1 ~ "false_alarm",
+                            ar_looking == 0 & pi_looking == 0 ~ "correct_rej",
+                            TRUE ~ NA_character_))
+
+#now get rid of false alarms
+full_pdr_compare <- full_pdr_compare %>% 
+  filter(signal != "false_alarm")
+
+#z-score
+z_data_compare <- full_pdr_compare %>% 
+  group_by(subid) %>% 
+  dplyr::summarise(sub_mean_compare = mean(raw_pdr, na.rm = TRUE),
+                   sub_sd_compare = sd(raw_pdr, na.rm = TRUE))
+
+full_pdr_compare <- full_pdr_compare %>% 
+  left_join(z_data_compare)
+
+full_pdr_compare <- full_pdr_compare %>% 
+  mutate(pdr_z_compare = (raw_pdr - sub_mean_compare)/sub_sd_compare)
+
+rm(z_data_compare)
+
+#filter
+full_pdr_compare <- full_pdr_compare %>% 
+  mutate(pdr_z_fil_compare = hanning_filter(pdr_z_compare, 11))
+
+#now do analyses
+
+#import boundary regions file
+bounds_1s_compare <- read_csv(here::here('chapter_3','boundary_regions_1000ms_after_b.csv'))
+
+#join with PDR file to keep only boundary regions
+bounds_1s_compare <- left_join(bounds_1s_compare, full_pdr_compare)
+
+#add object/partner
+bounds_1s_compare <- bounds_1s_compare %>% 
+  separate(vid, into = c("actor", "partner", "object"), sep = "_", remove = FALSE)
+
+bounds_1s_compare$region_1s <- as.factor(bounds_1s_compare$region_1s)
+contrasts(bounds_1s_compare$region_1s) <- contr.poly
+
+model <- lmer(pdr_z_fil_compare ~ region_1s + (1|subid) + (1|vid), data = bounds_1s_compare)
+summary(model)
+anova(model)
+
+model <- lmer(pdr_z_fil_compare ~ region_1s * partner + (1|subid) + (1|vid), data = bounds_1s_compare)
+summary(model)
+anova(model)
+
+plot.data.compare <- bounds_1s_compare %>% 
+  group_by(reg_num, region_1s, partner) %>% 
+  dplyr::summarise(avg_pdr = mean(pdr_z_fil_compare, na.rm = TRUE))
+
+ggplot(plot.data.compare) +
+  geom_line(aes(x = reg_num, y = avg_pdr, color = partner), size = 1) +
+  labs(title = "PDR to Boundaries for Adult- vs Infant-Directed Action", x = "Frames; Boundary at 0", y = "Average Z-Scored, Filtered, PDR") +
+  geom_vline(xintercept = 0, linetype = "dashed", size = 1) +
+  geom_vline(xintercept = c(-30, 29, 59), color = "red", size = 1)
+
+ggplot(plot.data) +
+  geom_line(aes(x = reg_num, y = avg_pdr, color = partner), size = 1) +
+  labs(title = "PDR to Boundaries for Infant- vs Adult-Directed Action: \n Comparing Results with and without False Alarms", x = "Frames; Boundary at 0", y = "Average Z-Scored, Filtered PDR") +
+  geom_vline(xintercept = 0, linetype = "dashed", size = 1) +
+  geom_vline(xintercept = c(-30, 29, 59), color = "red", size = 1) +
+  geom_line(plot.data.compare, mapping = aes(x = reg_num, y = avg_pdr, color = partner), size = 1, linetype = "dashed")
+
+
+#plot the same way as I did in the main text
+plot.data.compare <- bounds_1s_compare %>% 
+  group_by(reg_num, region_1s, partner) %>% 
+  dplyr::summarise(avg_pdr = mean(pdr_z_fil_compare, na.rm = TRUE))
+
+rects <- data.frame(xstart = c(-30, 0, 29), xend = c(0, 29, 59), Region = c("pre-boundary", "boundary", "post-boundary"))
+
+rects <- rects %>% 
+  mutate(Region = factor(Region, levels = c("pre-boundary", "boundary", "post-boundary")))
+
+plot.data$partner <- factor(plot.data$partner, levels = c("Infant", "Adult"), labels = c("Motionese", "Adult-Directed"))
+
+plot.data.compare$partner <- factor(plot.data.compare$partner, levels = c("Infant", "Adult"), labels = c("Motionese", "Adult-Directed"))
+
+ggplot(plot.data) +
+  geom_rect(data = rects, aes(xmin = xstart, xmax = xend, ymin = -Inf, ymax = Inf, fill = Region), alpha = 0.2, inherit.aes = FALSE) +
+  geom_line(aes(x = reg_num, y = avg_pdr, color = partner), size = 2) +
+  guides(linetype = guide_legend(override.aes = list(size = 1))) +
+  geom_line(plot.data.compare, mapping = aes(x = reg_num, y = avg_pdr, color = partner), size = 1, linetype = "dashed") +
+  theme_linedraw(base_size = 16) +
+  labs(title = "PDR to Boundaries for Infant- vs Adult-Directed Action: \nComparing Results with and without False Alarms", x = "Frame Number (Boundary at 0)", y = "Average Z-Scored and Filtered Pupil Size", color = "Demonstration Type")
+ 
+
+
+
+
+
+
+
+```
