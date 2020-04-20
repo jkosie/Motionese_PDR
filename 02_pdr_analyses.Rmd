@@ -403,7 +403,13 @@ est.marginal.means <- lsmeans(model, specs="region_1s")
 est.marginal.means
 pairs(est.marginal.means, adjust = "bonferroni")
 
-#plot this non-significant effect anyway
+#means
+bounds_1s %>% 
+  group_by(region_1s) %>% 
+  summarise(mean = mean(pdr_z_filtered, na.rm = TRUE),
+            sd = sd(pdr_z_filtered, na.rm = TRUE))
+
+#plot this effect 
 plot.data <- bounds_1s %>% 
   group_by(reg_num, region_1s) %>% 
   dplyr::summarise(avg_pdr = mean(pdr_z_filtered, na.rm = TRUE))
@@ -544,6 +550,17 @@ ggplot(plot.data, aes(x = reg_num, y = mean, linetype = partner)) +
   annotate("text", x = -15, y= 0.15, label = "Pre-Boundary Region", size = 5) +
   annotate("text", x = 15, y= 0.15, label = "Boundary Region", size = 5) +
   annotate("text", x = 45, y= 0.15, label = "Post-Boundary Region", size = 5) 
+
+#with original colors
+ggplot(plot.data, aes(x = reg_num, y = mean, linetype = partner)) +
+  geom_rect(data = rects, aes(xmin = xstart, xmax = xend, ymin = -Inf, ymax = Inf, fill = Region), alpha = 0.6, inherit.aes = FALSE) +
+  geom_line(size = 2) +
+  geom_ribbon(aes(ymin=mean-se, ymax=mean+se), alpha=0.4) +
+  ylim(-0.2, 0.15) +
+  theme_linedraw(base_size = 24) +
+  geom_vline(xintercept = 0, color = "forestgreen", linetype = "dashed", size = 2) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  labs(y = "Average Z-Scored and Filtered Pupil Size", x = "Frame Number (Boundary at 0)", linetype = "Demonstration Type") 
 ```
 #3a. Does infants' response to boundaries in IDA differ across blocks?
 ```{r boundary x motionese PDR}

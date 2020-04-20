@@ -1,0 +1,128 @@
+---
+title             : "Pupillometry as a window on the role of motionese in infants' processing of dynamic activity"
+shorttitle        : "XXX"
+
+author: 
+  - name          : "Jessica E. Kosie"
+    affiliation   : "1,2"
+    corresponding : yes    # Define only one corresponding author
+    address       : "Department of Psychology, Princeton University, Princeton, NJ 08540 USA"
+    email         : "jkosie@princeton.edu"
+  - name          : "Dare Baldwin"
+    affiliation   : "2"
+
+affiliation:
+  - id            : "1"
+    institution   : "Department of Psychology, Princeton University"
+  - id            : "2"
+    institution   : "Department of Psychology, University of Oregon"
+
+authornote: |
+
+abstract: |
+  Over the first few years of life, infants acquire the ability to make sense of, predict, respond to, remember, and learn from a variety of everyday human actions. Finding segmental structure within unfolding activity – in particular, boundaries at which units of action begin and end – seems key to the acquisition of such action-processing fluency, and has important downstream implications for cognitive and linguistic development (e.g., Levine et al., 2018). However, action unfolds rapidly and is just as quickly gone. How do infants find structure in the complex, dynamic, fleeting action that they observe? Caregivers’ infant-directed action demonstrations might serve to help with this challenging task. In interactions with infants, caregivers modify their motion in a variety of ways that engage infants’ overall attention (i.e., “motionese;” Brand, Baldwin, & Ashburn, 2002). It seems likely that these modifications additionally highlight and promote infants’ processing of the internal structure of action. We explored the influence of motionese on infants’ online processing of action, using a recently-developed, open source, inexpensive, infant-friendly methodology to measure infants’ pupil dilation as they viewed a select subset of videos depicting adult- and infant-directed activity sequenes. We found that infants’ pupil size (an indication of attention or cognitive engagement) increased in response to action boundaries, but only for motionese demonstrations. Thus, in addition to engaging overall attention, motionese likely serves to promote infants’ processing of action’s internal structure. These findings set the stage for future work targeting the source of this increased pupil dilation at boundary regions.
+
+  
+keywords          : "action segmentation, action processing, event processing, motionese, pupillometry"
+wordcount         : "X"
+
+bibliography      : ["r-references.bib"]
+
+figsintext        : yes
+figurelist        : no
+tablelist         : no
+footnotelist      : no
+lineno            : yes
+mask              : no
+
+documentclass     : "apa6"
+classoption       : "man"
+output            : papaja::apa6_docx
+replace_ampersands: yes
+csl               : apa6.csl
+---
+
+```{r setup, warning = FALSE}
+library(papaja)
+library(tidyverse)
+library(lme4)
+library(lmerTest)
+library(here)
+library(kableExtra)
+library(knitr)
+library(ggthemes)
+library(dplyr)
+library(viridis)
+
+```
+
+```{r analysis-preferences}
+# Seed for random number generation
+set.seed(42)
+knitr::opts_chunk$set(cache.extra = knitr::rand_seed, echo = FALSE, warning = FALSE, message = FALSE, cache = FALSE)
+
+# make sure summary() uses Type III sums of squares
+afex::set_sum_contrasts()
+
+# turn off scientific notation
+options(scipen = 999)
+
+# set plot theme
+theme_set(theme_bw() + 
+            theme(strip.background = element_blank(), 
+                  panel.grid = element_blank())) # nice theme with limited extras
+```
+
+```{r load data}
+
+## WILL LOAD DATA HERE
+
+```
+
+# Introduction
+
+Our everyday experience of the world centers on a sense of discrete events that occur across time. For example, we might experience a simple trip to the grocery store as a series of events that include parking the car, entering the store,being bumped into by a distracted shpper, putting groceries into a cart, paying the cashier, navigating a crowded parking lot, and loading up the trunk. Interestingly, the activity actually underlying this experience of events tends to be complex, dynamic, and evanescent. How do we transform the continuous, multi-modal stream that actually occurs into the experience of an event sequence? Answering this question has proven to be surprisingly challenging [@baldwin_baird_1999; @baldwin_baird_2001; @kurby_zacks_2008; @newtson_1977; @zacks_2007; @zacks_tversky_2001]. Even more challenging is to answer how infants and young children come to acquire adult-like skill at rendering continuously flowing experience in terms of event sequences. One challenge that has slowed progress on these issues is methodological: a dearth of available techniques for examining children's processing as information unfolds across time. In this paper, we showcare a valuable new method for this purpose, and report novel information about the nature of event-processing skill in preschool-aged children. 
+
+A recent surge of research on adults' event processing offers starting information about the perceptual and cognitive skills at play in this mental rendering process. For one, adult observers display high levels of agreement when asked to consciously report on the location of event boundaries in continuously streaming activity sequences [@newtson_1973]; as well, implicit indicators of processing, like fMRI and self-paced slideshow viewing [@baldassano_2017; @hard_2011; @kosie_baldwin_2019a; @kosie_baldwin_2019b], reveal consistent patterns of event segmentation. Event boundary judgments tend to reflect adults' analysis of the goal structure inherent in activity streams, although motion properties also influence such judgments [e.g., @newtson_1977; @zacks_2004; @zacks_2006b]. Further, adults' success at achieving a segmental analysis of streaming activity carries functional significance; that is, accurately identifying event boundaries predicts both memory for event content [@sargent_2013], and the ability to perform everyday sequences of action [@bailey_2013]. Conversely, event segmentation is impaired in disorders such as autism and dementia, with consequences for event comprehension and memory [@zacks_2006a; @zalla_2013]. Event segmentation in neurotypical adults show stability, but also flexibility: adults can flexibly focus on event segments at either higher- or lower-levels of generality [@newtson_1973]. As well, with increasing familiarity and/or knowledge adults can discover event units to which they were previously insensitive [@baldwin_2008; @kosie_baldwin_2019a; @swallow_zacks_2008].
+
+Recent research also reveals information about how event-segmentation skills begin to emerge in children's development, although many questions are yet unanswered. Even infants as young as six months appear to be sensitive to the segmental structure of at least some kinds of activity streams [@hespos_2009; @hespos_2010; @saylor_2007; @baldwin_2001; @pace_2020], and infants' sensitivity to event units within continously flowing activity predicts their event memory [@sonne_2016; @sonne_2017]. Like adults, infants can discover new event units via sensitivity to statistical regularities in novel activity streams [@baldwin_2012; @stahl_2014].
+
+Among the unanswered questions, however, is the degree to which early event segmentation rides on knowledge of goal structure. Much less is known on this front. On the one hand, a large literature provides extensive evidence that children, like adults, are sensitive to goal structure and often prioritize it in their processing of unfolding activity [e.g., @buresh_woodward_2007; @falckytter_2006; @gergely_csibra_2003; @gergely_1995; @gredeback_melinder_2010; @meltzoff_1995; @olofson_baldwin_2011; @phillips_2002; @woodward_1998; @woodward_2009]. However, this body of research doesn't provide insight into the extent to which children's goal-related knowledge influences their segmental analysis of continuously unfolding events. In fact, traditional methods used in the bulk of research on children's knowledge of goal structure, such as the habituation/dishabituation paradigm, do not lend themselves well to answering questions about event segmentation. To do so requires a method that indexes children's processing of continuously streaming activity as it unfolds across time.
+
+Hard, Recchia, and Tversky's [-@hard_2011] dwell-time paradigm is just such a technique, and it has previously been successfully employed with preschool-aged children [e.g., @meyer_2011]. A primary goal of the present research was to harness the dwell-time paradigm to probe the extent to which children's analysis of goal structure influences their event segmentation. In the dwell-time task, slideshows are constructed by extracting still frames at regular intervals (e.g., one frame per second) from videos of unfolding activity. Observers click a computer mouse to advance at their own pace through slideshows. Latency between mouse clicks (i.e., “dwell times”) indexes moment-to-moment changes in attention as activity unfolds. Interestingly, attentional profiles as revealed by dwell times reflect adults' segmental analysis of unfolding activity. In particular, adults' dwell-time patterns tend to reveal: (a) surges in attention at event boundaries ("boundary advantage"); and (b) especially pronounced surges to boundaries that are at higher levels within a goal hierarchy ("hierarchical advantage") [@hard_2011; @kosie_baldwin_2019a; @kosie_baldwin_2019b]. These findings reveal that, as sensory information unfolds across time, adults as well as children modulate attention in a manner that reflects their segmental analysis of the dynamic activity stream.
+
+Some initial evidence indicates that children, like adults, display both boundary and hierarchical advantages in their dwell-time patterns for relatively familar activity sequences [@meyer_2011; @ross_baldwin_2015]. However, another previous study failed to find these key patterns in preschoolers' dwell times [@sage_baldwin_2015], engendering some uncertainty about the usefulness of the dwell-time paradigm for investigating children's event segmentation. The present research was thus also designed to provide additional information about the value of the dwell-time paradigm for this purpose. 
+
+Jumping off previous findings, in the present research we specifically employed the dwell-time paradigm to examine the extent to which children's knowledge of goal structure influences their segmental analysis of an unfolding activity stream, relative to the influence of differential motion patterns. We selected a type of event that even very young children are believed to understand with respect to goal structure; namely, the activity of reaching for, grasping, and retrieving a ball. In previous research, Phillips and Wellman [-@phillips_wellman_2005] employed this very event to examine infants' ability to recognize the overarching goal of object retrieval independent of the specific motion pattern used to effect that goal. In this study, infants were habituated to an event in which an actor reached over a barrier to grasp and retrieve a ball. During subsequent test, infants displayed recovered interest when the actor displayed the identical motion pattern in a new context that appeared to violate canonical goal-oriented action (reaching over a non-existent barrier to grasp and retrieve the ball). In contrast, infants displayed continued habituation when the actor exhibited a novel motion pattern (reaching straight toward the ball) that preserved the canonical action properties with the same goal structure. These findings have been interpreted as confirming infants’ sensitivity to an actor’s goal independent of the specific motions (e.g., arcing versus straight reach) employed to satisfy the goal.
+
+We brought Phillips and Wellman's methodological design into the context of measuring preschoolers' dwell-time patterns to investigate the relative degree to which goal structure, surface motion properties, and goal-structure violations influence how preschoolers deploy their attention as activity unfolds across time. We wondered what patterns would emerge in children's dwell times as they advanced at their own pace through each of the Phillips and Wellman events. In one sense, segmental structure was the same across the three events: an actor reached for, grasped, and retrieved a ball. If goal-related segmental analysis is the primary determinant of children's attentional deployment during processing, dwell times should exhibit surges at each of these event boundaries, but shouldn't differ across the three events, despite differences in motion patterns. Alternatively, however, dwell-time patterns might differ across events, for two possible reasons. One possibility is that children's dwell times would primarily pattern according to motion characteristics, in which case dwell times would be similar for events exhibiting the same motion characteristics (arcing reach over a barrier and arcing reach over no barrier) but different for events differing in motion characteristics (straight reach). Yet another possibility: given that canonical properties of goal-oriented actions were violated for one of the three events (an arcing reach with no visible barrier), dwell-time patterns might differ for this event relative to the other two events. In particular, the violation of expected motion characteristics might elicit enhanced dwelling in the relevant portion of the violating event stream (when the arc over the non-existent barrier actually occurred) relative to the comparable region in other events (the arcing motion over the barrier and the linearly progressing straight reach).
+
+# Methods
+
+```{r participant gender}
+
+# LOAD DATA
+
+```
+## Participants
+
+XXX
+
+## Stimuli
+
+XXX
+
+
+\newpage
+
+# References
+```{r create_r-references, include = FALSE}
+r_refs(file = "r-references.bib")
+```
+
+\begingroup
+\setlength{\parindent}{-0.5in}
+\setlength{\leftskip}{0.5in}
+
+<div id = "refs"></div>
+\endgroup
