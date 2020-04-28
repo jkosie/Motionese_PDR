@@ -144,7 +144,7 @@ vid_looking <- vid_looking %>%
   separate(vid, into = c("actor", "partner", "object"), remove = FALSE)
 
 #run analysis examining looking by interaction partner
-look_mod <- lmer(prop_looking ~ partner + (partner|subid) + (1|vid), data = vid_looking)
+look_mod <- lmer(prop_looking ~ partner + (1|subid) + (1|vid), data = vid_looking)
 summary(look_mod)
 
 #means and sds
@@ -1233,4 +1233,9 @@ ggplot(plot.data) +
   theme(plot.title = element_text(hjust = 0.5)) +
   labs(y = "Average Z-Scored, Filtered PDR", x = "Frame Number (Boundary at 0)", linetype = "Interaction Partner")
 
+```
+# Write data file for manuscript.
+```{r write data file}
+write_csv(bounds_1s, "cleaned_pdr_data.csv")
+write_csv(vid_looking, "cleaned_looking_data.csv")
 ```
