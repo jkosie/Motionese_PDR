@@ -1,0 +1,84 @@
+---
+title: "possible_figures"
+author: "Jessica E. Kosie"
+date: "5/1/2020"
+output: word_document
+---
+
+```{r setup, include=FALSE}
+# open packages
+library(tidyverse)
+library(viridis)
+library(ggnewscale)
+
+# set plot theme
+theme_set(theme_bw() + 
+            theme(strip.background = element_blank(), 
+                  panel.grid = element_blank())) # nice theme with limited extras
+
+# read in data
+pdr_data <- read_csv("cleaned_pdr_data.csv")
+
+```
+# Figure Option 1
+```{r opt1}
+
+plot.data <- pdr_data %>% 
+  group_by(region_1s, partner, reg_num) %>% 
+  summarise(mean = mean(pdr_z_filtered, na.rm = TRUE),
+            sd = sd(pdr_z_filtered, na.rm=TRUE),
+            n = n(),
+            se=sd/sqrt(n),
+            ci = qt(0.975,df=n-1)*se)
+
+rects <- data.frame(xstart = c(-30, 0, 29), xend = c(0, 29, 59), Region = c("pre-boundary", "boundary", "post-boundary"))
+
+rects <- rects %>% 
+  mutate(Region = factor(Region, levels = c("pre-boundary", "boundary", "post-boundary")))
+
+plot.data$partner <- factor(plot.data$partner, levels = c("Infant", "Adult"), labels = c("Motionese", "Adult-Directed"))
+
+ggplot(plot.data, aes(x = reg_num, y = mean, linetype = partner)) +
+  geom_rect(data = rects, aes(xmin = xstart, xmax = xend, ymin = -Inf, ymax = Inf, fill = Region), alpha = 0.4, inherit.aes = FALSE) +
+  geom_line(size = 1) +
+  geom_ribbon(aes(ymin=mean-se, ymax=mean+se), alpha=0.2) +
+  ylim(-0.2, 0.15) +
+  theme_linedraw() +
+  scale_fill_viridis(discrete = TRUE, option = "D") +
+  geom_vline(xintercept = 0, color = "darkcyan", linetype = "dashed", size = 1.5) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  labs(y = "Average Z-Scored and Filtered Pupil Size", x = "Frame Number (Boundary at 0)", linetype = "Demonstration Type") 
+
+```
+# Figure Option 2
+```{r opt2}
+
+ggplot(plot.data, aes(x = reg_num, y = mean, linetype = partner)) +
+  geom_rect(data = rects, aes(xmin = xstart, xmax = xend, ymin = -Inf, ymax = Inf, fill = Region), alpha = 0.4, inherit.aes = FALSE) +
+  geom_line(size = 1) +
+  geom_ribbon(aes(ymin=mean-se, ymax=mean+se), alpha=0.4) +
+  ylim(-0.2, 0.15) +
+  theme_linedraw() +
+  scale_fill_manual(values = c("grey88", "grey62", "grey8")) +
+  geom_vline(xintercept = 0, color = "grey62", linetype = "dashed", size = 1) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  labs(y = "Average Z-Scored and Filtered Pupil Size", x = "Frame Number (Boundary at 0)", linetype = "Demonstration Type") 
+
+```
+#Figure Option 3
+```{r opt3}
+
+ggplot(plot.data) +
+  geom_rect(data = rects, aes(xmin = xstart, xmax = xend, ymin = -Inf, ymax = Inf, fill = Region), alpha = 0.4, inherit.aes = FALSE) +    scale_fill_manual(values = c("grey88", "grey62", "grey8")) +
+  new_scale_fill() +
+  geom_line(aes(x = reg_num, y = mean, linetype = partner, colour = partner), size = 1) +
+  geom_ribbon(aes(x = reg_num, ymin=mean-se, ymax=mean+se), alpha=0.4) +
+  scale_fill_viridis(discrete = TRUE, option = "D") +
+  ylim(-0.2, 0.15) +
+  theme_linedraw() +
+  geom_vline(xintercept = 0, color = "darkcyan", linetype = "dashed", size = 1) +
+  theme(plot.title = element_text(hjust = 0.5)) +
+  labs(y = "Average Z-Scored and Filtered Pupil Size", x = "Frame Number (Boundary at 0)", linetype = "Demonstration Type") 
+
+
+```
