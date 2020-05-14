@@ -1,0 +1,37 @@
+subid,age_days,sex_gender,percent_lang1,lang1,percent_lang2,lang2,percent_lang3,lang3,percent_lang4,lang_4,race,born_early,days_early,ear_infection_history,current_ear_infection,hear_vision_prob,explain_hv_prob,dev_concern,explin_dev_concern,sib1_dob,sib1_sex_gender,sib2_dob,sib_2_sex_gender,sib3_dob,sib3_sex_gender,sib4_dob,sib4_sex_gender,parent_a_sex_gender,parent1_language,parent_a_education,parent_b_sex_gender,parent_b_language,parent_b_education,macarthur_ladder
+ae015,294,F,100,English,NA,NA,NA,NA,NA,NA,White,Yes,7,No,No,No,NA,No,NA,6/10/15,F,NA,NA,NA,NA,NA,NA,F,English,Bachelor's degree,M,English,Some college/university,7
+bf022,284,M,100,Didn't mark,NA,NA,NA,NA,NA,NA,White,Yes,14,No,No,No,NA,No,NA,5/2/11,M,6/9/15,M,NA,NA,NA,NA,F,English,Master's degree,M,English,Master's degree,5
+bj020,291,M,100,English,NA,NA,NA,NA,NA,NA,White,No,NA,No,No,No,NA,No,NA,NA,NA,NA,NA,NA,NA,NA,NA,F,English,Master's degree,M,English,Bachelor's degree,7
+ca001,319,F,95,English,5,Spanish,NA,NA,NA,NA,White; Hispanic,Yes,11,No,No,No,NA,No,NA,NA,NA,NA,NA,NA,NA,NA,NA,F,English,Master's degree,M,English,Bachelor's degree,7
+cl007,320,F,100,English,NA,NA,NA,NA,NA,NA,White,No,NA,No,No,No,NA,No,NA,NA,NA,NA,NA,NA,NA,NA,NA,F,English,Master's degree & Juris Doctorate,M,English,Master's degree & Juris Doctorate,5
+cn011,324,M,100,English,NA,NA,NA,NA,NA,NA,White,No,NA,No,No,No,NA,No,NA,NA,NA,NA,NA,NA,NA,NA,NA,F,English,Master's degree,M,English,Some college/university,8
+cs025,274,F,100,English,NA,NA,NA,NA,NA,NA,White,No,NA,No,No,No,NA,No,NA,7/29/13,F,2/7/16,M,NA,NA,NA,NA,F,English,Bachelor's degree,M,English,Some college/university,4
+ct012,385,M,100,English,NA,NA,NA,NA,NA,NA,White; Hispanic,No,NA,No,No,No,NA,No,NA,NA,NA,NA,NA,NA,NA,NA,NA,M,English,High School,F,Enlgish,Doctoral Degree,8
+ct016,339,F,100,English,NA,NA,NA,NA,NA,NA,White,No,NA,No,No,No,NA,No,NA,2/11/04,M,12/8/05,F,19-Sep,F,3/5/10,F,F,English,Some College/university,M,English,Some college/university,6
+gc028,284,F,100,English,NA,NA,NA,NA,NA,NA,White,Yes,2,No,No,No,NA,No,NA,NA,NA,NA,NA,NA,NA,NA,NA,F,English,Bachelor's degree,M,English,High School,7
+hc002,316,F,100,English,NA,NA,NA,NA,NA,NA,White,No,NA,No,No,No,NA,No,NA,10/14/08,M,6/26/10,M,NA,NA,NA,NA,F,English,Bachelor's degree,M,English,Some college/university,5
+ht003,322,M,100,English,NA,NA,NA,NA,NA,NA,White,No,NA,No,No,No,NA,No,NA,Didn't mark,F,NA,NA,NA,NA,NA,NA,F,English,Bachelor's degree,M,Enlgish,Bachelor's degree,5
+ki009,381,M,100,English,NA,NA,NA,NA,NA,NA,White,Yes,6 days,Yes,No,No,NA,No,NA,5/11/15,F,NA,NA,NA,NA,NA,NA,F,English,J.D. (Law),M,English,Master's degree,8
+la004,334,F,100,Didn't mark,NA,NA,NA,NA,NA,NA,White,No,NA,Yes,No,No,NA,No,NA,2/10/16,F,NA,NA,NA,NA,NA,NA,F,English,Bachelor's degree,M,English,Bachelor's degree,9
+mg023,323,M,100,English,NA,NA,NA,NA,NA,NA,White,No,NA,No,No,No,NA,No,NA,6/5/15,M,NA,NA,NA,NA,NA,NA,F,English,Bachelor's degree,M,English,Bachelor's degree,5
+mo008,300,M,100,English,NA,NA,NA,NA,NA,NA,White,No,NA,No,No,No,NA,No,NA,NA,NA,NA,NA,NA,NA,NA,NA,M,English,Some College/university,F,English,Bachelor's degree,4
+om014,373,M,100,English,NA,NA,NA,NA,NA,NA,White,No,NA,No,No,No,NA,No,NA,3/8/15,M,NA,NA,NA,NA,NA,NA,F,English,Bachelor's degree,M,English,Bachelor's degree,6
+pl024,275,F,100,English,NA,NA,NA,NA,NA,NA,White,Yes,14,No,No,No,NA,No,NA,6/14/10,F,6/3/13,F,NA,NA,NA,NA,F,English,High School,NA,NA,NA,3
+pm021,287,M,100,English,NA,NA,NA,NA,NA,NA,White,Yes,39,No,No,No,NA,No,NA,11/?/2016,M,NA,NA,NA,NA,NA,NA,F,English,Bachelor's degree,M,English,Bachelor's degree,7
+pp006,381,F,100,English,NA,NA,NA,NA,NA,NA,White,No,NA,No,No,No,NA,No,NA,7/24/15,M,NA,NA,NA,NA,NA,NA,M,English,Doctoral degree/PharmD,F,English,Bachelor's degree,9
+ps017,276,M,70,English,2,Spanish,NA,NA,NA,NA,White,Yes,7,No,No,No,NA,No,NA,12/23/15,F,NA,NA,NA,NA,NA,NA,F,English,Some College/university,M,English,Doctoral Degree,6
+re027,284,F,100,English,NA,NA,NA,NA,NA,NA,"White, Hispanic, Korean",No,NA,Yes,No,No,NA,Yes,Mild locamotive delays ,NA,NA,NA,NA,NA,NA,NA,NA,F,English,Doctoral degree,M,English,Master's degree,7
+sb010,297,M,99.5,English,0.5,Spanish,NA,NA,NA,NA,"White, Indian/South Asian",Yes,4 days,Didn't mark,No,No,NA,No,NA,NA,NA,NA,NA,NA,NA,NA,NA,F,English,Doctoral degree,M,English and Punjubi,Law School,8
+sj005,298,F,100,English,NA,NA,NA,NA,10,Spanish,White,No,NA,No,No,No,NA,No,NA,NA,NA,NA,NA,NA,NA,NA,NA,F,English,Doctoral degree,M,English,Some college/university,7
+sl018,304,F,95,English,5,Spanish,NA,NA,NA,NA,White,No,NA,Yes,No,No,NA,No,NA,6/23/16,F,NA,NA,NA,NA,NA,NA,F,English,Bachelor's degree,M,English,Master's degree,6
+ve013,355,F,95,English,5,Spanish,NA,NA,NA,NA,White; Hispanic,No,NA,No,No,No,NA,No,NA,8/9/10,M,8/9/10,F,NA,NA,NA,NA,NA,English,Bachelor's degree,NA,English,Some college/university,5
+vj026,279,M,100,English,NA,NA,NA,NA,NA,NA,White,No,NA,No,No,No,NA,No,NA,6/27/10,F,4/10/13,F,NA,NA,NA,NA,F,English,Master's degree,M,English,Bachelor's degree,6
+wp019,281,M,100,English,NA,NA,NA,NA,NA,NA,White,No,NA,No,No,No,NA,No,NA,11/21/13,M,12/1/15,M,NA,NA,NA,NA,F,English,Bachelor's degree,M,English,Master's degree,7
+bf029,287,M,100,English,NA,NA,NA,NA,NA,NA,White,Yes,2,Yes,No,No,NA,No,NA,2/21/15,F,NA,NA,NA,NA,NA,NA,F,English,Master's degree,M,English,Some college/university,6
+wr030,387,F,60,Spanish,30,French,10,English,NA,NA,White,Yes,7,No,No,No,NA,Possibly ,Being seen about interaction and problem solving issues ,4/24/16,M,NA,NA,NA,NA,NA,NA,F,English,Doctoral degree,M,English,Master's degree,8
+hg031,295,M,100,English,NA,NA,NA,NA,NA,NA,White,No,Yes,No,No,No,NA,No,NA,NA,NA,NA,NA,NA,NA,NA,NA,F,English,Bachelor's degree,M,English,Master's degree,7
+bl032,348,F,100,English,NA,NA,NA,NA,NA,NA,White,No,NA,No,No,No,NA,No,NA,2/27/16,F,NA,NA,NA,NA,NA,NA,F,English,Doctoral degree,M,English,Bachelor's degree,5
+dr033,322,M,100,English,NA,NA,NA,NA,NA,NA,White,No,NA,No,No,No,NA,Yes,Deleyed because he spent the first 4 months in the hospital ,NA,NA,NA,NA,NA,NA,NA,NA,F,English,Bachelor's degree,M,English,Some high school,3
+rd034,354,F,98,English,1,Hawaiian,1,French,NA,NA,White,No,NA,No,No,No,NA,No,NA,NA,NA,NA,NA,NA,NA,NA,NA,F,English,Associates degree,M,English,Some college/university,8
+gr035,297,F,75,English,25,Chinese,NA,NA,NA,NA,White/Asian,No,NA,Yes,No,No,NA,No,NA,NA,NA,NA,NA,NA,NA,NA,NA,F,"Mandarin Chinese, English",Master's degree,M,English,Master's degree,6
+va036,343,F,100,English,NA,NA,NA,NA,NA,NA,White,Yes,14,No,No,No,NA,No,NA,8/11/16,M,NA,NA,NA,NA,NA,NA,F,English,Some College/university,M,English,Some college/university,6

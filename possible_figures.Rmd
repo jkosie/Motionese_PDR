@@ -17,7 +17,7 @@ theme_set(theme_bw() +
                   panel.grid = element_blank())) # nice theme with limited extras
 
 # read in data
-pdr_data <- read_csv("cleaned_pdr_data.csv")
+pdr_data <- read_csv("paper/cleaned_data/cleaned_pdr_data.csv")
 
 ```
 # Figure Option 1

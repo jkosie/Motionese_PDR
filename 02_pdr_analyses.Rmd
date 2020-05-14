@@ -53,13 +53,16 @@ rm(remove)
 pdr$status <- NULL
 pdr$remove_reason <- NULL
 
-#remove ki009 - they have a developmental delay
+#remove ki009 and dr033 - they have a developmental delay
 pdr <- pdr %>% 
-  filter(subid != "ki009")
+  filter(subid != "ki009" & subid != "dr033")
 
 #get rid of `trial_offset`
 pdr <- pdr %>%
   filter(event != "trial_offset")
+
+
+
 ```
 #Prepare for analyses.
 ```{r prep for analyses}
