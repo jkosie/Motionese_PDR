@@ -38,6 +38,29 @@ rects <- rects %>%
 
 plot.data$partner <- factor(plot.data$partner, levels = c("Infant", "Adult"), labels = c("Motionese", "Adult-Directed"))
 
+#without any lines
+ggplot(plot.data, aes(x = reg_num, y = mean, linetype = partner)) +
+  geom_rect(data = rects, aes(xmin = xstart, xmax = xend, ymin = -Inf, ymax = Inf, fill = Region), alpha = 0.4, inherit.aes = FALSE) +
+  ylim(-0.2, 0.15) +
+  theme_linedraw() +
+  scale_fill_viridis(discrete = TRUE, option = "D") +
+  geom_vline(xintercept = 0, color = "darkcyan", linetype = "dashed", size = 1.5) +
+  theme(plot.title = element_text(hjust = 0.5), legend.position = "none") +
+  labs(y = "Average Z-Scored and Filtered Pupil Size", x = "Frame Number (Boundary at 0)", linetype = "Demonstration Type") 
+
+#only adult-directed
+ggplot(filter(plot.data, partner == "Adult-Directed"), aes(x = reg_num, y = mean)) +
+  geom_rect(data = rects, aes(xmin = xstart, xmax = xend, ymin = -Inf, ymax = Inf, fill = Region), alpha = 0.4, inherit.aes = FALSE) +
+  geom_line(size = 1, linetype = "dashed") +
+  geom_ribbon(aes(ymin=mean-se, ymax=mean+se), alpha=0.2) +
+  ylim(-0.2, 0.15) +
+  theme_linedraw() +
+  scale_fill_viridis(discrete = TRUE, option = "D") +
+  geom_vline(xintercept = 0, color = "darkcyan", linetype = "dashed", size = 1.5) +
+  theme(plot.title = element_text(hjust = 0.5), legend.position = "none") +
+  labs(y = "Average Z-Scored and Filtered Pupil Size", x = "Frame Number (Boundary at 0)", linetype = "Demonstration Type") 
+
+#motionse and adult-directed
 ggplot(plot.data, aes(x = reg_num, y = mean, linetype = partner)) +
   geom_rect(data = rects, aes(xmin = xstart, xmax = xend, ymin = -Inf, ymax = Inf, fill = Region), alpha = 0.4, inherit.aes = FALSE) +
   geom_line(size = 1) +
@@ -46,6 +69,20 @@ ggplot(plot.data, aes(x = reg_num, y = mean, linetype = partner)) +
   theme_linedraw() +
   scale_fill_viridis(discrete = TRUE, option = "D") +
   geom_vline(xintercept = 0, color = "darkcyan", linetype = "dashed", size = 1.5) +
+  scale_linetype_manual(values=c("solid", "dashed")) +
+  theme(plot.title = element_text(hjust = 0.5), legend.position = "none") +
+  labs(y = "Average Z-Scored and Filtered Pupil Size", x = "Frame Number (Boundary at 0)", linetype = "Demonstration Type") 
+
+#with legend
+ggplot(plot.data, aes(x = reg_num, y = mean, linetype = partner)) +
+  geom_rect(data = rects, aes(xmin = xstart, xmax = xend, ymin = -Inf, ymax = Inf, fill = Region), alpha = 0.4, inherit.aes = FALSE) +
+  geom_line(size = 1) +
+  geom_ribbon(aes(ymin=mean-se, ymax=mean+se), alpha=0.2) +
+  ylim(-0.2, 0.15) +
+  theme_linedraw() +
+  scale_fill_viridis(discrete = TRUE, option = "D") +
+  geom_vline(xintercept = 0, color = "darkcyan", linetype = "dashed", size = 1.5) +
+  scale_linetype_manual(values=c("solid", "dashed")) +
   theme(plot.title = element_text(hjust = 0.5)) +
   labs(y = "Average Z-Scored and Filtered Pupil Size", x = "Frame Number (Boundary at 0)", linetype = "Demonstration Type") 
 
